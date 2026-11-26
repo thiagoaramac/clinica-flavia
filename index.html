@@ -26,6 +26,7 @@
   // links antigos com ?k=... ainda funcionam: a chave é guardada e some do endereço
   var q = new URLSearchParams(location.search);
   if (q.get("k")) { gravarChave(q.get("k")); history.replaceState(null, "", location.pathname + location.hash); }
+  if (q.get("sair")) { gravarChave(""); history.replaceState(null, "", location.pathname + location.hash); }
 
   var f;
   function abrir(){
@@ -40,8 +41,8 @@
     document.body.appendChild(f);
   }
   window.addEventListener("message", function(e){
-    var host = ""; try { host = new URL(e.origin).hostname; } catch (x) {}
-    if (!/(^|\.)googleusercontent\.com$/.test(host) && host !== "script.google.com") return;
+    // o app do Google roda isolado (origem "null" ou *.googleusercontent.com); só aceita recados do próprio iframe
+    if (!f || e.source !== f.contentWindow && !(e.origin === "null" || /(^|\.)googleusercontent\.com$/.test((function(){ try { return new URL(e.origin).hostname; } catch (x) { return ""; } })()))) return;
     var d = e.data || {};
     if (d.app !== "clinica-flavia") return;
     if (d.tipo === "chave" && typeof d.k === "string" && d.k.length < 200) { gravarChave(d.k); abrir(); }
